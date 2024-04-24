@@ -436,7 +436,32 @@ class AddressTranslator:
     def _explore_radixtree(
         self, table_addr, mapping, reverse_mapping, lvl=0, prefix=0, upmask=list()
     ):
-        """Explore the radix tree returning virtual <-> physical mappings"""
+        """Explore a radix tree to obtain virtual <-> physical mappings.
+        
+        Args:
+            self: The instance of the calling class.
+            table_addr: The address of the radix tree table.
+            mapping: A dictionary to store virtual <-> physical mappings.
+            reverse_mapping: A dictionary to store reverse mappings from physical to virtual addresses.
+            lvl (optional): The level of the radix tree being explored (default is 0).
+            prefix (optional): The prefix used for constructing virtual addresses (default is 0).
+            upmask (optional): A list containing the permission mask (default is an empty list).
+        
+        Expected Results:
+            Exploration of a radix tree to obtain mappings.
+        
+        Purpose:
+            To traverse a radix tree and obtain virtual <-> physical mappings.
+        
+        Functioning:
+            - The function starts by retrieving the data of the radix tree table.
+            - It iterates through each entry of the table, checking for validity.
+            - If the entry is valid, it computes the virtual address and permission mask.
+            - If it's the last level of the radix tree or a leaf node, it checks if the page is in RAM or memory-mapped devices.
+            - If the page is in RAM, it constructs the virtual address and adds it to the mappings dictionary.
+            - If it's not the last level, it recursively calls itself to explore lower-level entries.
+        """
+
 
         table = self.phy.get_data(table_addr, self.table_sizes[lvl])
         if not table:
@@ -538,6 +563,49 @@ class AddressTranslator:
         return fused_intervals[1:]
 
     def _reconstruct_mappings(self, table_addr, upmask):
+        """
+         Args:
+            self: The instance of the calling class.
+            table_addr: The address of the radix tree table.
+            upmask: The permission mask.
+        
+        Expected Results:
+            Reconstruction of memory mappings for efficient processing.
+        
+        Purpose:
+            To reconstruct memory mappings using a radix tree traversal approach and organize them for further processing.
+        
+        Exploring Radix Tree:
+        - Initiates mappings and calls `_explore_radixtree()` with necessary parameters.
+        - Populates `mapping` and `reverse_mapping` with mappings obtained from the radix tree.
+        
+        ELF Virtual Mapping Reconstruction:
+        - Sets `reverse_mapping` and `mapping` attributes for potential future reference.
+        - Likely essential for reconstructing ELF (Executable and Linkable Format) virtual mappings.
+        
+        Collecting Intervals:
+        - Collects intervals based on mappings, excluding user-inaccessible pages.
+        - Compiles intervals with start address, end address, physical page, and permission mask.
+        
+        Interval Fusion:
+        - Performs operations to compact intervals for efficiency.
+        - Reduces the number of elements for faster processing.
+        
+        Offset to Virtual Mapping:
+        - Translates physical offsets to virtual addresses.
+        - Creates intervals for physical offsets to virtual addresses based on `reverse_mapping`.
+        
+        Sorting Intervals:
+        - Sorts the intervals obtained from the previous steps.
+        - Essential for organized and efficient processing.
+        
+        Creating Resolution Objects:
+        - Constructs resolution objects using collected and sorted interval data.
+        - Includes objects such as `IMOffsets`, `IMOverlapping`, `IMData`.
+        
+        Conclusion:
+        - The function aims to reconstruct memory mappings using a radix tree traversal approach.
+        """
         # Explore the radix tree
         mapping = defaultdict(list)
         reverse_mapping = {}
@@ -585,7 +653,25 @@ class AddressTranslator:
         self.pmasks = IMData(*list(zip(*fused_intervals_permissions)))
 
     def export_virtual_memory_elf(self, elf_filename):
-        """Create an ELF file containg the virtual address space of the process"""
+        
+        """Create an ELF file containing the virtual address space of the process.
+        Args:
+            self: The instance of the class invoking the function.
+            elf_filename: Name of the file to create.
+
+        Raises:
+            IOError: An error occurred while accessing the ELF file.
+        
+        Objectives:
+            - Create an ELF file containing the virtual address space of the process.
+        
+        Functioning:
+            - The function begins by creating the ELF header and writing it to the file.
+            - It then iterates through intervals of memory mappings to compact them for efficiency.
+            - Next, it writes segments in the new file and fills the program header.
+            - Finally, it modifies the ELF header to point to the program header for consistency and validity of the ELF file.
+        """
+
         with open(elf_filename, "wb") as elf_fd:
             # Create the ELF header and write it on the file
             machine_data = self.phy.get_machine_data()
