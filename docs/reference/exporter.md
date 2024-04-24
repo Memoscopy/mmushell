@@ -2,7 +2,7 @@
 
 ::: mmushell.exporter
 
-:::mmushell.exporter._explore_radixtree
+::: mmushell.exporter._explore_radixtree
 # Understanding Memory Mapping Function: _explore_radixtree
 
 ## Objectives
@@ -18,7 +18,7 @@
 - Virtual <-> physical mappings are constructed by analyzing each entry of the radix tree table.
 - In our case, they are built at each level of the tree, associating computed virtual addresses with corresponding physical addresses `mapping[permissions].append((virt_addr, page_size, phy_addr, in_mmd))`.
 
-:::mmushell.exporter._reconstruct_mappings
+::: mmushell.exporter._reconstruct_mappings
 # Understanding Memory Mapping Function: _reconstruct_mappings
 
 ## Exploring Radix Tree
