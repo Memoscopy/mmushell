@@ -120,6 +120,28 @@ class IMData:
         self.values = values
 
     def __getitem__(self, x):
+        """Return the index of the interval containing the value x.
+
+        Args:
+        - x: The value to check if it falls within any interval.
+        - size: The size of the interval to find.
+
+        Returns:
+        - Index of the interval containing x if x falls within the interval and the size of the interval is not exceeded by adding the specified size; otherwise, returns -1.
+
+        Description:
+        - The method checks if the value x falls within any interval in the mapping.
+        - If x is within an interval and adding the specified size does not exceed the interval size, it returns the index of the interval containing x.
+        - Otherwise, it returns -1.
+
+        Purpose:
+        - To determine if a value falls within any interval in the mapping and if adding a specified size to the value exceeds the interval size.
+
+        Technical Explanation:
+        - The method utilizes binary search to find the index of the interval containing the value x.
+        - It checks if x falls within the interval and if adding the specified size does not exceed the interval size.
+        - If the conditions are met, it returns the index of the interval; otherwise, it returns -1.
+    """
         idx = bisect(self.keys, x) - 1
         begin = self.keys[idx]
         end, data = self.values[idx]
@@ -180,7 +202,27 @@ class IMOffsets:
             return -1
 
     def contains(self, x, size):
-        """Return the maximum size and the list of intervals"""
+        """Return the maximum size and the list of intervals.
+
+            Args:
+            - x: The value to check if it falls within any interval.
+            - size: The size of the interval to find.
+    
+            Returns:
+            - Maximum size available within intervals and the list of intervals.
+    
+            Description:
+            - The method checks if the value x falls within any interval in the mapping.
+            - If x is within an interval, it calculates the maximum size available starting from x and returns the list of intervals that cover the requested size.
+    
+            Purpose:
+            - To find intervals containing a specific value and to determine the maximum size available within those intervals.
+    
+            Technical Explanation:
+            - The method utilizes binary search to find the index of the interval containing the value x.
+            - It then iterates through the intervals starting from the identified index and calculates the maximum size available.
+            - The method returns the maximum size and the list of intervals that cover the requested size.
+    """
         idx = bisect(self.keys, x) - 1
         begin = self.keys[idx]
         end, data = self.values[idx]
@@ -241,6 +283,30 @@ class IMOverlapping:
     """
 
     def __init__(self, intervals):
+        """Initialize the class instance with a list of intervals.
+            Args:
+            - intervals: A list of intervals represented as tuples (l, r, v), where:
+              - l: The left endpoint of the interval.
+              - r: The right endpoint of the interval.
+              - v: The value associated with the interval.
+    
+            Description:
+            - The constructor initializes the class instance with a list of intervals.
+            - It organizes the intervals based on their left endpoints and computes the changes in offsets.
+            - The results are stored for efficient access during interval queries.
+    
+            Purpose:
+            - To initialize the class instance with a list of intervals and precompute results for interval queries.
+    
+            Technical Explanation:
+            - The constructor takes a list of intervals and sorts them based on their left endpoints.
+            - It computes the changes in offsets for each interval and stores the results for efficient access during interval queries.
+    
+            Example:
+            ```python
+            intervals = [(0, 3, [10]), (1, 4, [20]), (2, 5, [30])]
+            instance = ClassName(intervals) ```
+        """
         limit2changes = defaultdict(lambda: ([], []))
         for idx, (l, r, v) in enumerate(intervals):
             assert l < r
@@ -594,6 +660,19 @@ class AddressTranslator:
         - To provide a base class for address translation and related functionalities.
     """
     def __init__(self, dtb, phy):
+        """Initialize the AddressTranslator instance with a device tree blob and physical memory instance.
+    
+            Args:
+            - dtb: Device tree blob.
+            - phy: Physical memory instance.
+    
+            Description:
+            - This constructor initializes the AddressTranslator instance with a device tree blob and physical memory instance.
+            - It sets machine-specific attributes such as word_type, word_fmt based on the machine's word size and endianness.
+    
+            Purpose:
+            - To initialize the AddressTranslator instance with necessary attributes and machine specifics.
+    """
         self.dtb = dtb
         self.phy = phy
 
@@ -1397,6 +1476,25 @@ class RISCVSV32(RISCVTranslator):
 
 class RISCVSV39(RISCVTranslator):
     def __init__(self, dtb, phy, Sum, mxr):
+        """Initialize the RISCVSV39 instance with specific attributes for RV39 address translation.
+
+        Args:
+        - dtb: Device tree blob.
+        - phy: Physical memory instance.
+        - Sum: Sum attribute (unspecified type).
+        - mxr: Mxr attribute (unspecified type).
+
+        Description:
+        - This constructor initializes the RISCVSV39 instance with specific attributes required for RV39 address translation.
+
+        Attributes:
+        - unpack_fmt: Format string for unpacking binary data.
+        - total_levels: Total levels of the page table hierarchy.
+        - prefix: Prefix value for address translation.
+        - table_sizes: Sizes of the page tables at each level.
+        - shifts: Shift values for calculating addresses.
+        - wordsize: Size of the machine word.
+    """
         self.unpack_fmt = "<Q"
         self.total_levels = 3
         self.prefix = 0x0
@@ -1407,7 +1505,30 @@ class RISCVSV39(RISCVTranslator):
         super(RISCVSV39, self).__init__(dtb, phy, Sum, mxr)
 
     def _read_entry(self, idx, entry, lvl):
-        # Return (is_Valid, Permissions flags, Table Address, Size)
+        """Decode the entry in the page table.
+
+        Args:
+        - idx: Index of the entry.
+        - entry: Entry value in the page table.
+        - lvl: Level of the page table hierarchy.
+
+        Returns:
+        - is_Valid: Boolean indicating if the entry is valid.
+        - Permissions flags: Tuple containing permissions flags for the entry.
+        - Table Address: Address of the table.
+        - Size: Size of the table entry.
+
+        Description:
+        - This method decodes an entry in the page table and returns information such as validity, permissions flags, address, and size.
+
+        Purpose:
+        - To decode entries in the page table for address translation.
+
+        Technical Explanation:
+        - It checks if the entry is empty and returns appropriate values if it is.
+        - If the entry is not empty, it extracts permissions flags and calculates the address and size of the entry.
+        - For leaf entries, it returns the address and size directly. For non-leaf entries, it returns the address and a size of 0.
+        """
 
         # Empty entry
         if not (entry & 0x1):
