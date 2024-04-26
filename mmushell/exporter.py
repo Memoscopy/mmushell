@@ -279,6 +279,38 @@ class IMOverlapping:
 
 
 class ELFDump:
+    """Represents a class for parsing ELF files and extracting machine data.
+    
+        Description:
+        - ELFDump is a class designed to read and parse ELF files, extracting necessary information such as machine data, endianness, architecture, and memory mapped devices.
+    
+        Attributes:
+        - filename: Name of the ELF file.
+        - machine_data: Dictionary containing machine configuration extracted from ELF segments.
+        - p2o: Mapping of physical addresses to file offsets.
+        - o2p: Mapping of file offsets to physical addresses.
+        - p2mmd: Mapping of physical addresses to Memory Mapped Devices (MMD) intervals.
+        - elf_buf: Buffer containing the contents of the ELF file.
+        - elf_filename: Name of the ELF file.
+
+        Methods:
+        - __init__(self, elf_filename): Constructor method to initialize ELFDump instance.
+        - __read_elf_file(self, elf_fd): Reads and parses the ELF file from the provided file descriptor.
+        - _compact_intervals_simple(self, intervals): Compacts intervals for contiguous pointer values.
+        - _compact_intervals(self, intervals): Compacts intervals for contiguous pointer and pointed values.
+        - in_ram(self, paddr, size=1): Returns True if the interval is completely in RAM.
+        - in_mmd(self, paddr, size=1): Returns True if the interval is completely in Memory mapped devices space.
+        - get_data(self, paddr, size): Returns the data at physical address (interval).
+        - get_data_raw(self, offset, size=1): Returns the data at the offset in the ELF (interval).
+        - get_machine_data(self): Returns a dict containing machine configuration.
+        - get_ram_regions(self): Returns all the RAM regions of the machine and the associated offset.
+        - get_mmd_regions(self): Returns all the Memory mapped devices intervals of the machine and the associated offset.
+
+        Purpose:
+        - To parse ELF files, extract machine data, and provide methods for accessing data and information from the ELF file.
+
+
+    """
     def __init__(self, elf_filename):
         self.filename = elf_filename
         self.machine_data = {}
@@ -543,6 +575,24 @@ def get_virtspace(phy, mmu_values):
 
 
 class AddressTranslator:
+   """ Represents a base class for address translation.
+        Description:
+        - AddressTranslator is a base class providing functionalities for translating addresses.
+    
+        Attributes:
+        - dtb: Device tree blob.
+        - phy: Physical memory instance.
+        - wordsize: Size of the machine word (4 or 8 bytes).
+        - word_type: Data type of the machine word (np.uint32 or np.uint64).
+        - word_fmt: Format of the machine word for packing and unpacking.
+        - v2o: Mapping of virtual to offset.
+        - o2v: Mapping of offset to virtual.
+        - pmasks: Permission masks.
+        - minimum_page: Minimum page size.
+        
+        Purpose:
+        - To provide a base class for address translation and related functionalities.
+    """
     def __init__(self, dtb, phy):
         self.dtb = dtb
         self.phy = phy
