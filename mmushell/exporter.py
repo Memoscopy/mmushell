@@ -46,7 +46,25 @@ def main():
 
 
 class IMSimple:
-    """Fast search in intervals (begin) (end)"""
+    """Fast search in intervals (begin), (end).
+    
+        Description:
+        - Represents a class for efficient search in intervals.
+    
+        Attributes:
+        - keys: List of interval beginnings.
+        - values: List of interval ends.
+    
+        Methods:
+        - __init__(self, keys, values): Constructor method to initialize IMSimple instance.
+        - __getitem__(self, x): Method to get the difference between x and the nearest interval beginning.
+        - contains(self, x, size): Method to check if a given address and size fit within intervals.
+        - get_values(self): Method to get values of intervals.
+        - get_extremes(self): Method to get the first and last interval boundaries.
+    
+        Purpose:
+        - To provide fast search functionality in intervals.
+    """
 
     def __init__(self, keys, values):
         self.keys = keys
@@ -77,7 +95,25 @@ class IMSimple:
 
 
 class IMData:
-    """Fast search in intervals (begin), (end, associated data)"""
+    """Fast search in intervals (begin), (end, associated data).
+    
+        Description:
+        - Represents a class for efficient search in intervals with associated data.
+        
+        Attributes:
+        - keys: List of interval beginnings.
+        - values: List of tuples containing interval ends and associated data.
+        
+        Methods:
+        - __init__(self, keys, values): Constructor method to initialize IMSimple instance.
+        - __getitem__(self, x): Method to get the associated data for a specific point.
+        - contains(self, x, size): Method to check if a given address and size fit within intervals.
+        - get_values(self): Method to get values of intervals.
+        - get_extremes(self): Method to get the first and last interval boundaries.
+        
+        Purpose:
+        - To provide fast search functionality in intervals with associated data
+    """
 
     def __init__(self, keys, values):
         self.keys = keys
@@ -109,7 +145,26 @@ class IMData:
 
 
 class IMOffsets:
-    """Fast search in intervals (begin), (end, associated offset)"""
+    """Fast search in intervals (begin), (end, associated offset).
+    
+        Description:
+        - Represents a class for efficient search in intervals.
+        - Initializes with keys and values representing interval boundaries and associated offsets.
+    
+        Attributes:
+        - keys: List of interval beginnings.
+        - values: List of tuples containing interval ends and associated offsets.
+    
+        Methods:
+        - __init__(self, keys, values): Constructor method to initialize IMOffsets instance.
+        - __getitem__(self, x): Method to get the offset associated with a specific point.
+        - contains(self, x, size): Method to check if a given address and size fit within intervals.
+        - get_values(self): Method to get values of intervals.
+        - get_extremes(self): Method to get the first and last interval boundaries.
+    
+        Purpose:
+        - To provide fast search functionality in intervals with associated offsets.
+    """
 
     def __init__(self, keys, values):
         self.keys = keys
@@ -165,8 +220,25 @@ class IMOffsets:
 
 
 class IMOverlapping:
-    """Fast search in overlapping intervals (begin), (end, [associated
-    offsets])"""
+    """Fast search in overlapping intervals (begin), (end, [associated offsets]).
+    
+        Description:
+        - Represents a class for efficiently searching overlapping intervals.
+        - Initializes with a list of intervals.
+    
+        Attributes:
+        - intervals: List of intervals (begin), (end, [associated offsets]).
+        - limits: Sorted list of interval limits.
+        - results: List of results corresponding to intervals.
+        
+        Methods:
+        - __init__(self, intervals): Constructor method to initialize IMOverlapping instance.
+        - __getitem__(self, x): Method to get values associated with a specific point.
+        - get_values(self): Method to get values of intervals.
+    
+        Purpose:
+        - To provide fast search functionality in overlapping intervals.)
+    """
 
     def __init__(self, intervals):
         limit2changes = defaultdict(lambda: ([], []))
@@ -225,7 +297,32 @@ class ELFDump:
             self.__read_elf_file(elf_fd)
 
     def __read_elf_file(self, elf_fd):
-        """Parse the dump in ELF format"""
+        """Functioning:
+            - Reads and parses the dump in ELF format from the provided file descriptor.
+            - Extracts machine data, endianness, and architecture information from ELF segments.
+            - Fills arrays for translating physical addresses to file offsets.
+            - Compacts intervals for efficient processing.
+            
+            Args:
+                self: The instance of the calling class.
+                elf_fd: File descriptor for the ELF file to be read and parsed.
+            
+            Expected Results:
+                Extract machine data, endianness, and architecture information from ELF segments.
+                Fill arrays for translating physical addresses to file offsets.
+                Compact intervals for efficient processing.
+            
+            Purpose:
+                To read and parse an ELF file, extracting necessary information and preparing data structures for further processing.
+            
+            Technical Explanation:
+            - The function begins by initializing lists to store information related to physical addresses, offsets, and memory-mapped devices.
+            - It then utilizes the `ELFFile` class from the `elftools` module to parse the ELF file.
+            - For each segment in the ELF file, it checks if it is a NoteSegment. If it is, it iterates through notes and extracts machine data, endianness, and architecture information.
+            - If the segment is not a NoteSegment, it calculates the start and end addresses of the segment and fills arrays needed to translate physical addresses to file offsets.
+            - These arrays are then compacted for efficiency using the `_compact_intervals` method.
+            - Finally, the compacted intervals are assigned to attributes of the class instance for future reference and usage.
+            """
         o2p_list = []
         p2o_list = []
         p2mmd_list = []
@@ -287,7 +384,33 @@ class ELFDump:
         self.p2mmd = IMSimple(*list(zip(*sorted(p2mmd_list))))
 
     def _compact_intervals_simple(self, intervals):
-        """Compact intervals if pointer values are contiguos"""
+        """Functioning:
+            - Compacts intervals if pointer values are contiguous.
+            - Merges adjacent intervals into a single interval.
+            
+            Args:
+                self: The instance of the calling class.
+                intervals: List of intervals to be compacted.
+            
+            Expected Results:
+                Compact intervals if pointer values are contiguous.
+            
+            Purpose:
+                To merge adjacent intervals into a single interval for efficient processing.
+            
+            Technical Explanation:
+            - The function takes a list of intervals as input, where each interval consists of a begin and end value.
+            - It initializes an empty list to store the compacted intervals.
+            - It then iterates through each interval in the input list.
+            - If the end value of the current interval is equal to the begin value of the previous interval, it extends the previous interval to include the end value of the current interval.
+            - If the end value of the current interval is not equal to the begin value of the previous interval, it adds the previous interval to the list of compacted intervals and starts a new interval.
+            - Finally, it appends the last interval to the list of compacted intervals.
+            - The function returns the list of compacted intervals.
+            
+            Example:
+                Input: [(0, 1), (1, 3), (4, 6), (6, 8)]
+                Output: [(0, 3), (4, 8)]
+        """
         fused_intervals = []
         prev_begin = prev_end = -1
         for interval in intervals:
@@ -307,7 +430,33 @@ class ELFDump:
         return fused_intervals[1:]
 
     def _compact_intervals(self, intervals):
-        """Compact intervals if pointer and pointed values are contigous"""
+        """Functioning:
+            - Compacts intervals if pointer and pointed values are contiguous.
+            - Merges adjacent intervals into a single interval.
+            
+            Args:
+                self: The instance of the calling class.
+                intervals: List of intervals to be compacted, where each interval consists of a start address and a tuple containing the end address and physical address.
+            
+            Expected Results:
+                Compact intervals if pointer and pointed values are contiguous.
+            
+            Purpose:
+                To merge adjacent intervals into a single interval for efficient processing.
+            
+            Technical Explanation:
+            - The function takes a list of intervals as input, where each interval consists of a start address and a tuple containing the end address and physical address.
+            - It initializes an empty list to store the compacted intervals.
+            - It then iterates through each interval in the input list.
+            - If the end address of the current interval is equal to the start address of the previous interval, and the physical address of the current interval is contiguous with the previous physical address, it extends the previous interval to include the end address and physical address of the current interval.
+            - If the end address of the current interval is not equal to the start address of the previous interval or the physical address is not contiguous, it adds the previous interval to the list of compacted intervals and starts a new interval.
+            - Finally, it appends the last interval to the list of compacted intervals.
+            - The function returns the list of compacted intervals.
+            
+            Example:
+                Input: [(0, (1, 100)), (1, (3, 101)), (4, (6, 102)), (6, (8, 103))]
+                Output: [(0, (3, 100)), (4, (8, 102))]
+        """
         fused_intervals = []
         prev_begin = prev_end = prev_phy = -1
         for interval in intervals:
@@ -366,7 +515,24 @@ class ELFDump:
 
 
 def get_virtspace(phy, mmu_values):
-    """Return a virtspace from a physical one"""
+    """Get Virtual Address Space from a Physical Address Space.
+        Functioning:
+        - Returns a virtual address space based on the physical address space and MMU values.
+        - Determines the architecture of the physical address space and selects the appropriate translator to create the virtual address space.
+        
+        Args:
+            phy: Physical address space object.
+            mmu_values: MMU (Memory Management Unit) values associated with the physical address space.
+        
+        Returns:
+            A virtual address space object.
+        
+        Raises:
+            Exception: If the architecture of the physical address space is unknown.
+        
+        Purpose:
+            To create a virtual address space from a physical address space based on the architecture of the system.
+"""
     architecture = phy.get_machine_data()["Architecture"].lower()
     if "riscv" in architecture:
         return RISCVTranslator.factory(phy, mmu_values)
@@ -511,8 +677,21 @@ class AddressTranslator:
                 )
 
     def _compact_intervals_virt_offset(self, intervals):
-        """Compact intervals if virtual addresses and offsets values are
-        contigous (virt -> offset)"""
+        """Functioning:
+            - Compacts intervals if virtual addresses and offset values are contiguous (virt -> offset).
+            - Iterates through intervals and merges contiguous ones.
+            - Appends the merged intervals to the `fused_intervals` list.
+            
+            Args:
+                self: The instance of the calling class.
+                intervals: List of intervals containing virtual addresses, end addresses, physical pages, and permission masks.
+            
+            Expected Results:
+                Compact intervals for efficient processing of virtual addresses and offset values.
+            
+            Purpose:
+                To compact intervals if virtual addresses and offset values are contiguous, enhancing processing efficiency.
+        """
         fused_intervals = []
         prev_begin = prev_end = prev_offset = -1
         for interval in intervals:
@@ -541,7 +720,21 @@ class AddressTranslator:
         return fused_intervals[1:]
 
     def _compact_intervals_permissions(self, intervals):
-        """Compact intervals if virtual addresses are contigous and permissions are equals"""
+        """Functioning:
+            - Compacts intervals if virtual addresses are contiguous and permissions are equal.
+            - Iterates through intervals and merges contiguous ones with equal permissions.
+            - Appends the merged intervals to the `fused_intervals` list.
+            
+            Args:
+                self: The instance of the calling class.
+                intervals: List of intervals containing virtual addresses, end addresses, physical pages, and permission masks.
+            
+            Expected Results:
+                Compact intervals for efficient processing of contiguous virtual addresses with equal permissions.
+            
+            Purpose:
+                To compact intervals if virtual addresses are contiguous and permissions are equal, enhancing processing efficiency.s
+        """
         fused_intervals = []
         prev_begin = prev_end = -1
         prev_pmask = (0, 0)
@@ -1032,8 +1225,18 @@ class IntelAMD64(IntelTranslator):
 
 
 class RISCVTranslator(AddressTranslator):
+    """Description:
+        - Represents a translator for converting physical addresses to virtual addresses in RISC-V architecture.
+        - Provides methods for deriving MMU settings, selecting translator class, creating translator instances, and handling virtual address mapping.
+       Purpose:
+        - To provide functionality for translating physical addresses to virtual addresses in RISC-V architecture.
+"""
     @staticmethod
     def derive_mmu_settings(mmu_class, regs_dict):
+        """derive_mmu_settings(mmu_class, regs_dict):
+            - Static method to derive MMU (Memory Management Unit) settings based on the MMU class and register dictionary.
+            - Returns MMU settings including the DTB (Translation Base Register) and control flags.
+        """
         dtb = regs_dict["satp"]
         return {"dtb": dtb, "Sum": False, "mxr": False}
 
@@ -1065,6 +1268,12 @@ class RISCVTranslator(AddressTranslator):
         return virt_addr
 
     def _reconstruct_permissions(self, pmask):
+        """_reconstruct_permissions(self, pmask):
+            - Method to reconstruct permissions based on the permission mask.
+            - Extracts permission flags (read, write, execute) from the permission mask.
+            - Sets permission bits for kernel and user modes.
+            - Returns permission settings for kernel and user modes.
+    """
         k_flag, r_flag, w_flag, x_flag = pmask[-1]  # No hierarchy
 
         r = r_flag
@@ -1084,6 +1293,25 @@ class RISCVTranslator(AddressTranslator):
 
 
 class RISCVSV32(RISCVTranslator):
+    """Description:
+        - Represents a translator for RISC-V SV32 addressing mode.
+        - Inherits from the RISCVTranslator class.
+    
+        Attributes:
+            - unpack_fmt: Format string for unpacking binary data.
+            - total_levels: Total levels in the radix tree.
+            - prefix: Prefix for virtual addresses.
+            - table_sizes: Sizes of radix tree tables at each level.
+            - shifts: Shift values for computing virtual addresses.
+            - wordsize: Size of a word in bytes.
+    
+        Methods:
+            - __init__(self, dtb, phy, Sum, mxr): Constructor method to initialize RISCVSV32 instance.
+            - _read_entry(self, idx, entry, lvl): Method to read a radix tree entry.
+    
+        Purpose:
+            - To provide functionality for translating physical addresses to virtual addresses in RISC-V SV32 addressing mode.
+    """
     def __init__(self, dtb, phy, Sum, mxr):
         self.unpack_fmt = "<I"
         self.total_levels = 2
