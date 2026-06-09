@@ -28,4 +28,4 @@ $ direnv allow .
 
 ## Documentation
 
-You can find the updated documentation [here](https://memoscopy.github.io/mmushell), where you will find tutorials, how-to guides, references and explanations on this project.
+You can find the updated documentation [here](https://zeishr.github.io/mmushell/), where you will find tutorials, how-to guides, references and explanations on this project.
